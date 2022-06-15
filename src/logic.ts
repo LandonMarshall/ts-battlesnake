@@ -52,10 +52,10 @@ export function move(gameState: GameState): MoveResponse {
         possibleMoves.right = false
     }
     if (myHead.y === 0) {
-        possibleMoves.up = false
+        possibleMoves.down = false
     }
     if (myHead.y === boardHeight - 1) {
-        possibleMoves.down = false
+        possibleMoves.up = false
     }
 
     // TODO: Step 2 - Don't hit yourself.
