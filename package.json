@@ -2,6 +2,9 @@
   "name": "starter-snake-typescript",
   "version": "1.0.0",
   "description": "A simple Battlesnake written in TypeScript",
+  "engines": {
+    "node": "18.3.0"
+  },
   "scripts": {
     "build": "tsc",
     "prestart": "npm run build",
