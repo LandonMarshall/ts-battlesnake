@@ -16,7 +16,7 @@ export function isImmediateDangerUp(gameState: GameState): boolean {
 	const snakes = gameState.board.snakes;
 	const myHead = gameState.you.head;
 	return snakes.some(snake => {
-		return snake.some(bodyPiece => {
+		return snake.body.some(bodyPiece => {
 			return (bodyPiece.x === myHead.x && bodyPiece.x + 1 === myHead.x)
 		}),
 	}),
