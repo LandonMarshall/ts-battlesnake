@@ -41,7 +41,6 @@ export function move(gameState: GameState): MoveResponse {
 		possibleMoves.up = false
 	}
 
-	// TODO: Step 1 - Don't hit walls.
 	// Use information in gameState to prevent your Battlesnake from moving beyond the boundaries of the board.
 	const boardWidth = gameState.board.width
 	const boardHeight = gameState.board.height
@@ -58,13 +57,12 @@ export function move(gameState: GameState): MoveResponse {
 		possibleMoves.up = false
 	}
 
-	// TODO: Step 2 - Don't hit yourself.
-	// Use information in gameState to prevent your Battlesnake from colliding with itself.
+	// Use information in gameState to prevent your Battlesnake from colliding with itself and others
 	const snakes = gameState.board.snakes;
 
 	const upDanger = snakes.some(snake => {
 		return snake.body.some(bodyPiece => {
-			return (bodyPiece.x === myHead.x && bodyPiece.y + 1 === myHead.y)
+			return (bodyPiece.x === myHead.x && bodyPiece.y === myHead.y + 1)
 		})
 	})
 	if (upDanger) {
@@ -72,7 +70,7 @@ export function move(gameState: GameState): MoveResponse {
 	}
 	const downDanger = snakes.some(snake => {
 		return snake.body.some(bodyPiece => {
-			return (bodyPiece.x === myHead.x && bodyPiece.y - 1 === myHead.y)
+			return (bodyPiece.x === myHead.x && bodyPiece.y === myHead.y - 1)
 		})
 	})
 	if (downDanger) {
@@ -80,7 +78,7 @@ export function move(gameState: GameState): MoveResponse {
 	}
 	const leftDanger = snakes.some(snake => {
 		return snake.body.some(bodyPiece => {
-			return (bodyPiece.x - 1 === myHead.x && bodyPiece.y === myHead.y)
+			return (bodyPiece.x === myHead.x - 1 && bodyPiece.y === myHead.y)
 		})
 	})
 	if (leftDanger) {
@@ -88,16 +86,13 @@ export function move(gameState: GameState): MoveResponse {
 	}
 	const rightDanger = snakes.some(snake => {
 		return snake.body.some(bodyPiece => {
-			return (bodyPiece.x + 1 === myHead.x && bodyPiece.y === myHead.y)
+			return (bodyPiece.x === myHead.x + 1 && bodyPiece.y === myHead.y)
 		})
 	})
 	if (rightDanger) {
 		possibleMoves.right = false;
 	}
 
-
-
-	// TODO: Step 3 - Don't collide with others.
 	// Use information in gameState to prevent your Battlesnake from colliding with others.
 
 	// TODO: Step 4 - Find food.
