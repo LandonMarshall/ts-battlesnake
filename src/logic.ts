@@ -12,16 +12,6 @@ export function info(): InfoResponse {
 	return response
 }
 
-export function isImmediateDangerUp(gameState: GameState): boolean {
-	const snakes = gameState.board.snakes;
-	const myHead = gameState.you.head;
-	return snakes.some(snake => {
-		return snake.body.some(bodyPiece => {
-			return (bodyPiece.x === myHead.x && bodyPiece.x + 1 === myHead.x)
-		})
-	})
-}
-
 export function start(gameState: GameState): void {
 	console.log(`${gameState.game.id} START`)
 }
@@ -70,21 +60,42 @@ export function move(gameState: GameState): MoveResponse {
 
 	// TODO: Step 2 - Don't hit yourself.
 	// Use information in gameState to prevent your Battlesnake from colliding with itself.
-	const mybody = gameState.you.body
-	for (let i = 0; i < mybody.length; i++) {
-		if ((mybody[i].x === (myHead.x - 1)) && (mybody[i].y === myHead.y)) {
-			possibleMoves.left = false;
-		};
-		if ((mybody[i].x === (myHead.x + 1)) && (mybody[i].y === myHead.y)) {
-			possibleMoves.right = false;
-		}
-		if ((mybody[i].y === (myHead.y - 1)) && (mybody[i].x === myHead.x)) {
-			possibleMoves.down = false;
-		}
-		if (isImmediateDangerUp(gameState)) {
-			possibleMoves.up = false;
-		}
+	const snakes = gameState.board.snakes;
+
+	const upDanger = snakes.some(snake => {
+		return snake.body.some(bodyPiece => {
+			return (bodyPiece.x === myHead.x && bodyPiece.y + 1 === myHead.y)
+		})
+	})
+	if (upDanger) {
+		possibleMoves.up = false;
 	}
+	const downDanger = snakes.some(snake => {
+		return snake.body.some(bodyPiece => {
+			return (bodyPiece.x === myHead.x && bodyPiece.y - 1 === myHead.y)
+		})
+	})
+	if (downDanger) {
+		possibleMoves.down = false;
+	}
+	const leftDanger = snakes.some(snake => {
+		return snake.body.some(bodyPiece => {
+			return (bodyPiece.x - 1 === myHead.x && bodyPiece.y === myHead.y)
+		})
+	})
+	if (leftDanger) {
+		possibleMoves.left = false;
+	}
+	const rightDanger = snakes.some(snake => {
+		return snake.body.some(bodyPiece => {
+			return (bodyPiece.x + 1 === myHead.x && bodyPiece.y === myHead.y)
+		})
+	})
+	if (rightDanger) {
+		possibleMoves.right = false;
+	}
+
+
 
 	// TODO: Step 3 - Don't collide with others.
 	// Use information in gameState to prevent your Battlesnake from colliding with others.
