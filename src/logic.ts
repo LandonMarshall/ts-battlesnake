@@ -58,10 +58,14 @@ export function move(gameState: GameState): MoveResponse {
 	}
 
 	// Use information in gameState to prevent your Battlesnake from colliding with itself and others
-	const snakes = gameState.board.snakes;
+	const snakes = gameState.board.snakes.map(snake => snake.body);
+	const hazards = snakes;
+	if (gameState.board.hazards) {
+		Array.prototype.push.apply(hazards, gameState.board.hazards); 
+	}
 
 	const upDanger = snakes.some(snake => {
-		return snake.body.some(bodyPiece => {
+		return snake.some(bodyPiece => {
 			return (bodyPiece.x === myHead.x && bodyPiece.y === myHead.y + 1)
 		})
 	})
@@ -96,11 +100,13 @@ export function move(gameState: GameState): MoveResponse {
 	// Use information in gameState to prevent your Battlesnake from colliding with others.
 
 	// TODO: Step 4 - Find food.
-	// Use information in gameState to seek out and find food.
+	const safeMoves = Object.keys(possibleMoves).filter(key => possibleMoves[key])
+  const foodList = gameState.board.food;
+	let closestFoodDistance = 999999999999;
+	let closestFoodIndex = -1;
 
 	// Finally, choose a move from the available safe moves.
 	// TODO: Step 5 - Select a move to make based on strategy, rather than random.
-	const safeMoves = Object.keys(possibleMoves).filter(key => possibleMoves[key])
 	const response: MoveResponse = {
 		move: safeMoves[Math.floor(Math.random() * safeMoves.length)],
 	}
