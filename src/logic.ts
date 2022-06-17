@@ -127,21 +127,27 @@ export function initializeBoard(gameState: GameState): string[][] {
 
 // ---------------------------------- Start of move ----------------------------------
 
+	// TODO: Sweep search for closest food? This works okay though
+	// TODO: Flood fill for avoiding dead ends
+	// TODO: Check if another snake head is in a square adjacent to the one I want to go to, if so eat/avoid it based on it's length
+
 export function move(gameState: GameState): MoveResponse {
-	let gameBoard: string[][] = initializeBoard(gameState);
+	const gameBoard: string[][] = initializeBoard(gameState);
+	const boardWidth = gameState.board.width;
+	const boardHeight = gameState.board.height;
+	const ruleset = gameState.game.ruleset.name;
+	const myHead = gameState.you.head
 	let possibleMoves: { [key: string]: number } = {
 		up: 0,
 		down: 0,
 		left: 0,
 		right: 0
 	}
-	const boardWidth = gameState.board.width;
-	const boardHeight = gameState.board.height;
-	const ruleset = gameState.game.ruleset.name;
 
-	// Avoid self collisions
-	const myHead = gameState.you.head
-	printBoard(gameBoard);
+	// Uncomment for debugging
+	// printBoard(gameBoard);
+
+	// Avoid collisions
 	if (isDeathLeft(gameBoard, myHead, ruleset)) {
 		possibleMoves.left = -99999999999999;
 	}
