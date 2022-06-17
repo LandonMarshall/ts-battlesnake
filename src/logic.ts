@@ -64,33 +64,33 @@ export function move(gameState: GameState): MoveResponse {
 		Array.prototype.push.apply(hazards, gameState.board.hazards); 
 	}
 
-	const upDanger = snakes.some(snake => {
-		return snake.some(bodyPiece => {
-			return (bodyPiece.x === myHead.x && bodyPiece.y === myHead.y + 1)
+	const upDanger = hazards.some(hazard => {
+		return hazard.some(item => {
+			return (item.x === myHead.x && item.y === myHead.y + 1)
 		})
 	})
 	if (upDanger) {
 		possibleMoves.up = false;
 	}
-	const downDanger = snakes.some(snake => {
-		return snake.body.some(bodyPiece => {
-			return (bodyPiece.x === myHead.x && bodyPiece.y === myHead.y - 1)
+	const downDanger = hazards.some(hazard => {
+		return hazard.some(item => {
+			return (item.x === myHead.x && item.y === myHead.y - 1)
 		})
 	})
 	if (downDanger) {
 		possibleMoves.down = false;
 	}
-	const leftDanger = snakes.some(snake => {
-		return snake.body.some(bodyPiece => {
-			return (bodyPiece.x === myHead.x - 1 && bodyPiece.y === myHead.y)
+	const leftDanger = hazards.some(hazard => {
+		return hazard.some(item => {
+			return (item.x === myHead.x - 1 && item.y === myHead.y)
 		})
 	})
 	if (leftDanger) {
 		possibleMoves.left = false;
 	}
-	const rightDanger = snakes.some(snake => {
-		return snake.body.some(bodyPiece => {
-			return (bodyPiece.x === myHead.x + 1 && bodyPiece.y === myHead.y)
+	const rightDanger = hazards.some(hazard => {
+		return hazard.some(item => {
+			return (item.x === myHead.x + 1 && item.y === myHead.y)
 		})
 	})
 	if (rightDanger) {
