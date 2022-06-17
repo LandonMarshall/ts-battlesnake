@@ -1,7 +1,7 @@
-import { InfoResponse, GameState, MoveResponse, Game, Coord } from "./types"
+import { InfoResponse, GameState, MoveResponse, Coord } from "./types"
 
 // Avoid Hazards, and snakes for now
-const AVOID_LETTERS = ["H", "S"];
+const AVOID_LETTERS = ["H", "S", "SH"];
 
 export function info(): InfoResponse {
 	console.log("INFO")
@@ -82,10 +82,18 @@ export function isDeathDown(board: string[][], myHead: Coord, ruleset: string): 
 
 export function populateBoard(gameState: GameState, board: string[][]): string[][] {
 	let boardCopy = board;
+	const myLength = gameState.you.length;
+	// TODO: Create snakes list with snake ids with lengths, avoid squares where another snake is 1 
+	// square away from it with a bigger tail and seek squares when smaller 
+	
 	// Add snakes
 	gameState.board.snakes.forEach(snake => {
-		snake.body.forEach(bodyPiece => {
-			boardCopy[bodyPiece.x][bodyPiece.y] = 'S';
+		snake.body.forEach((bodyPiece, i) => {
+			if (i === 0) { // snake head
+				boardCopy[bodyPiece.x][bodyPiece.y] = 'SH'
+			} else {
+				boardCopy[bodyPiece.x][bodyPiece.y] = 'S';
+			}
 		});
 	});
 
@@ -117,7 +125,7 @@ export function initializeBoard(gameState: GameState): string[][] {
 	return filledBoard;
 }
 
-
+// ---------------------------------- Start of move ----------------------------------
 
 export function move(gameState: GameState): MoveResponse {
 	let gameBoard: string[][] = initializeBoard(gameState);
@@ -133,8 +141,7 @@ export function move(gameState: GameState): MoveResponse {
 
 	// Avoid self collisions
 	const myHead = gameState.you.head
-	// const myNeck = gameState.you.body[1]
-	// printBoard(gameBoard);
+	printBoard(gameBoard);
 	if (isDeathLeft(gameBoard, myHead, ruleset)) {
 		possibleMoves.left = -99999999999999;
 	}
@@ -162,7 +169,8 @@ export function move(gameState: GameState): MoveResponse {
 			yDistance = food.y - myHead.y;
 		}
 	});
-	if (xDistance > 0) {
+	// food is either right or left, if it is same x value we don't want to prioritize these values
+	if (xDistance > 0) { 
 		possibleMoves.right += Math.abs(boardWidth - Math.abs(xDistance));
 	} else if (xDistance < 0) {
 		possibleMoves.left += Math.abs(boardWidth - Math.abs(xDistance));
