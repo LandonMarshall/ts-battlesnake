@@ -29,7 +29,7 @@ export class BoardTree {
     this.status = "alive";
     this.moveMySnake(); // make snake move to new position
     this.createChildren();
-    console.log(this.depth, this.move, this.status, this.myHead);
+    // console.log(this.depth, this.move, this.status, this.myHead);
   }
   moveMySnake() {
     if (!this.move) {
