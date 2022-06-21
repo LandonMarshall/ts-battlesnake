@@ -1,7 +1,9 @@
-import { InfoResponse, GameState, MoveResponse, Coord } from "./types"
+import { InfoResponse, GameState, MoveResponse } from "./types"
+import { BoardTree } from "./BoardTree";
+import { initializeBoard } from "./boardHelpers";
 
-// Avoid Hazards, and snakes for now
-const AVOID_LETTERS = ["H", "S", "SH"];
+const directions = ["left", "right", "up", "down"];
+
 
 export function info(): InfoResponse {
 	console.log("INFO")
@@ -23,120 +25,35 @@ export function end(gameState: GameState): void {
 	console.log(`${gameState.game.id} END\n`)
 }
 
-export function printBoard(board: string[][]): void {
-	const rows = board.length
-	const cols = board[0].length
 
-	// Transpose grid so we can actually see the board
-	let grid: string[][] = []
-	for (let col = 0; col < cols; col++) {
-		grid[col] = []
-	}
-	for (let row = 0; row < rows; row++) {
-		for (let col = 0; col < cols; col++) {
-			grid[cols - col - 1][row] = board[row][col]
-		}
-	}
-	console.table(grid);
-}
-
-export function isDeathLeft(board: string[][], myHead: Coord, ruleset: string): boolean {
-	const boardWidth = board[0].length;
-	const leftBad = AVOID_LETTERS.includes(board?.[myHead.x - 1]?.[myHead.y]);
-	const wrappedLeftBad = ruleset === 'wrapped'
-		&& myHead.x === 0
-		&& AVOID_LETTERS.includes(board?.[boardWidth - 1]?.[myHead.y]);
-	const atLeftWall = myHead.x === 0 && ruleset !== 'wrapped';
-	return leftBad || wrappedLeftBad || atLeftWall;
-}
-
-export function isDeathRight(board: string[][], myHead: Coord, ruleset: string): boolean {
-	const boardWidth = board[0].length;
-	const rightBad = AVOID_LETTERS.includes(board?.[myHead.x + 1]?.[myHead.y]);
-	const wrappedRightBad = ruleset === 'wrapped'
-		&& myHead.x === boardWidth - 1
-		&& AVOID_LETTERS.includes(board?.[0]?.[myHead.y]);
-	const atRightWall = myHead.x === boardWidth - 1 && ruleset !== 'wrapped';
-	return rightBad || wrappedRightBad || atRightWall;
-}
-
-export function isDeathUp(board: string[][], myHead: Coord, ruleset: string): boolean {
-	const boardHeight = board.length;
-	const upBad = AVOID_LETTERS.includes(board?.[myHead.x]?.[myHead.y + 1]);
-	const wrappedUpBad = ruleset === 'wrapped'
-		&& myHead.y === boardHeight - 1
-		&& AVOID_LETTERS.includes(board?.[myHead.x]?.[0]);
-	const atTopWall = myHead.y === boardHeight - 1 && ruleset !== 'wrapped';
-	return upBad || wrappedUpBad || atTopWall;
-}
-
-export function isDeathDown(board: string[][], myHead: Coord, ruleset: string): boolean {
-	const boardHeight = board.length;
-	const downBad = AVOID_LETTERS.includes(board?.[myHead.x]?.[myHead.y - 1]);
-	const wrappedDownBad = ruleset === 'wrapped'
-		&& myHead.y === 0
-		&& AVOID_LETTERS.includes(board?.[myHead.x]?.[boardHeight - 1]);
-	const atBottomWall = myHead.y === 0 && ruleset !== 'wrapped';
-	return downBad || wrappedDownBad || atBottomWall;
-}
-
-export function populateBoard(gameState: GameState, board: string[][]): string[][] {
-	let boardCopy = board;
-	const myLength = gameState.you.length;
-	// TODO: Create snakes list with snake ids with lengths, avoid squares where another snake is 1 
-	// square away from it with a bigger tail and seek squares when smaller 
-	
-	// Add snakes
-	gameState.board.snakes.forEach(snake => {
-		snake.body.forEach((bodyPiece, i) => {
-			if (i === 0) { // snake head
-				boardCopy[bodyPiece.x][bodyPiece.y] = 'SH'
-			} else {
-				boardCopy[bodyPiece.x][bodyPiece.y] = 'S';
-			}
-		});
-	});
-
-	// Add hazards
-	if (gameState.board.hazards) {
-		gameState.board.hazards.forEach(hazard => {
-			boardCopy[hazard.x][hazard.y] = 'H';
-		});
-	}
-	// Add food
-	gameState.board.food.forEach(food => {
-		boardCopy[food.x][food.y] = 'F';
-	});
-
-	// Add my head
-	boardCopy[gameState.you.head.x][gameState.you.head.y] = 'O';
-	return board;
-}
-
-export function initializeBoard(gameState: GameState): string[][] {
-	let board: string[][] = [];
-	for (let i = 0; i < gameState.board.width; i++) {
-		board[i] = [];
-		for (let j = 0; j < gameState.board.height; j++) {
-			board[i][j] = '';
-		}
-	}
-	let filledBoard = populateBoard(gameState, board);
-	return filledBoard;
-}
 
 // ---------------------------------- Start of move ----------------------------------
 
-	// TODO: Sweep search for closest food? This works okay though
-	// TODO: Flood fill for avoiding dead ends
-	// TODO: Check if another snake head is in a square adjacent to the one I want to go to, if so eat/avoid it based on it's length
+// TODO: Sweep search for closest food? This works okay though
+// TODO: Flood fill for avoiding dead ends
+// TODO: Check if another snake head is in a square adjacent to the one I want to go to, if so eat/avoid it based on it's length
 
 export function move(gameState: GameState): MoveResponse {
-	const gameBoard: string[][] = initializeBoard(gameState);
+	console.log('------------------------------------------------------')
 	const boardWidth = gameState.board.width;
 	const boardHeight = gameState.board.height;
-	const ruleset = gameState.game.ruleset.name;
-	const myHead = gameState.you.head
+	const myHead = gameState.you.head;
+
+
+	const rootBoard = new BoardTree(gameState, undefined, undefined, 0);
+	// rootBoard.printBoard();
+	// console.log(rootBoard.descendants);
+	let leftSnake = rootBoard.addChild(rootBoard.gameState, "left", undefined, 1);
+	let rightSnake = rootBoard.addChild(rootBoard.gameState, "right", undefined, 1);
+	let upSnake = rootBoard.addChild(rootBoard.gameState, "up", undefined, 1);
+	let downSnake = rootBoard.addChild(rootBoard.gameState, "down", undefined, 1);
+	// leftSnake.checkDescendants();
+	// console.log("left: ", leftSnake.status);
+	// console.log("right: ", rightSnake.status);
+	// console.log("up: ", upSnake.status);
+	// console.log("down: ", downSnake.status);
+
+
 	let possibleMoves: { [key: string]: number } = {
 		up: 0,
 		down: 0,
@@ -144,20 +61,17 @@ export function move(gameState: GameState): MoveResponse {
 		right: 0
 	}
 
-	// Uncomment for debugging
-	// printBoard(gameBoard);
-
 	// Avoid collisions
-	if (isDeathLeft(gameBoard, myHead, ruleset)) {
+	if (leftSnake.status === 'dead') {
 		possibleMoves.left = -99999999999999;
 	}
-	if (isDeathRight(gameBoard, myHead, ruleset)) {
+	if (rightSnake.status === 'dead') {
 		possibleMoves.right = -99999999999999;
 	}
-	if (isDeathUp(gameBoard, myHead, ruleset)) {
+	if (upSnake.status === 'dead') {
 		possibleMoves.up = -99999999999999;
 	}
-	if (isDeathDown(gameBoard, myHead, ruleset)) {
+	if (downSnake.status === 'dead') {
 		possibleMoves.down = -99999999999999;
 	}
 
@@ -176,7 +90,7 @@ export function move(gameState: GameState): MoveResponse {
 		}
 	});
 	// food is either right or left, if it is same x value we don't want to prioritize these values
-	if (xDistance > 0) { 
+	if (xDistance > 0) {
 		possibleMoves.right += Math.abs(boardWidth - Math.abs(xDistance));
 	} else if (xDistance < 0) {
 		possibleMoves.left += Math.abs(boardWidth - Math.abs(xDistance));
