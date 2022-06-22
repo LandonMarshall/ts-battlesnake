@@ -1,8 +1,8 @@
-import { initializeBoard, moveIsDeath } from "./boardHelpers";
+import { initializeBoard, statusAfterMove } from "./boardHelpers";
 import { GameState } from "./types";
 
 const moveMappings: any = { left: [-1, 0], right: [1, 0], up: [0, 1], down: [0, -1] };
-const MAX_DEPTH = 3;
+const MAX_DEPTH = 2;
 
 export class BoardTree {
   gameState: GameState;
@@ -19,16 +19,12 @@ export class BoardTree {
   constructor(gameState: GameState, moveSelf?: string, moveOthers: number[] = [0, 0], depth: number = 0) {
     this.gameState = JSON.parse(JSON.stringify(gameState));
     this.myHead = gameState.you.head;
-    this.leftChild = undefined;
-    this.rightChild = undefined;
-    this.upChild = undefined;
-    this.downChild = undefined;
     this.descendants = [];
     this.move = moveSelf;
     this.depth = depth;
     this.status = "alive";
     this.moveMySnake(); // make snake move to new position
-    this.createChildren();
+    // this.createChildren();
     // console.log(this.depth, this.move, this.status, this.myHead);
   }
   moveMySnake() {
@@ -43,36 +39,26 @@ export class BoardTree {
     }
     modifiedGameState.you.body.unshift(modifiedGameState.you.head);
     modifiedGameState.you.body.pop();
-    if (!moveIsDeath(initializeBoard(this.gameState), this.myHead, this.gameState.game.ruleset.name, move)) {
-      this.gameState = modifiedGameState;
-      this.myHead = modifiedGameState.you.head;
+    this.status = statusAfterMove(this.gameState, move);
+    if (this.status === "dead") {
+      this.myHead = { x: -1, y: -1 };
     }
     else {
-      this.status = "dead";
-      this.myHead = { x: -1, y: -1 };
+      this.gameState = modifiedGameState;
+      this.myHead = modifiedGameState.you.head;
     }
   }
 
   addChild(gameState: GameState, moveSelf: string, moveOthers: number[] = [0, 0], depth: number = 0) {
     var child = new BoardTree(gameState, moveSelf, moveOthers, depth);
     if (child.status === "alive") {
-      switch (moveSelf) {
-        case 'left':
-          this.leftChild = child;
-          break;
-        case 'right':
-          this.rightChild = child;
-          break;
-        case 'up':
-          this.upChild = child;
-          break;
-        case 'down':
-          this.downChild = child;
-          break;
-      }
       this.descendants.push(child);
     }
     return child;
+  }
+
+  floodFill() {
+    this.printBoard();
   }
 
   createChildren() {
@@ -81,10 +67,21 @@ export class BoardTree {
     }
     const moves = ['left', 'right', 'up', 'down'];
     moves.forEach(move => {
+      let child = this.addChild(this.gameState, move, undefined, this.depth + 1);
       if (this.status === 'alive') {
-        let child = this.addChild(this.gameState, move, undefined, this.depth + 1);
         child.createChildren();
       }
+    });
+  }
+  printTree() {
+    if (this.descendants.length === 0) {
+      return;
+    }
+    this.descendants.forEach((descendant, i) => {
+      console.log(i, descendant.depth, descendant.move, descendant.status, descendant.myHead);
+    });
+    this.descendants.forEach(descendant => {
+      descendant.printTree();
     });
   }
 

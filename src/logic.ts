@@ -1,8 +1,5 @@
 import { InfoResponse, GameState, MoveResponse } from "./types"
 import { BoardTree } from "./BoardTree";
-import { initializeBoard } from "./boardHelpers";
-
-const directions = ["left", "right", "up", "down"];
 
 
 export function info(): InfoResponse {
@@ -34,7 +31,7 @@ export function end(gameState: GameState): void {
 // TODO: Check if another snake head is in a square adjacent to the one I want to go to, if so eat/avoid it based on it's length
 
 export function move(gameState: GameState): MoveResponse {
-	console.log('------------------------------------------------------')
+	// console.log('------------------------------------------------------')
 	const boardWidth = gameState.board.width;
 	const boardHeight = gameState.board.height;
 	const myHead = gameState.you.head;
@@ -42,7 +39,8 @@ export function move(gameState: GameState): MoveResponse {
 
 	const rootBoard = new BoardTree(gameState, undefined, undefined, 0);
 	// rootBoard.printBoard();
-	// console.log(rootBoard.descendants);
+	// rootBoard.printTree();
+	// rootBoard.floodFill();
 	let leftSnake = rootBoard.addChild(rootBoard.gameState, "left", undefined, 1);
 	let rightSnake = rootBoard.addChild(rootBoard.gameState, "right", undefined, 1);
 	let upSnake = rootBoard.addChild(rootBoard.gameState, "up", undefined, 1);
@@ -65,14 +63,26 @@ export function move(gameState: GameState): MoveResponse {
 	if (leftSnake.status === 'dead') {
 		possibleMoves.left = -99999999999999;
 	}
+	else if (leftSnake.status === 'danger') {
+		possibleMoves.left = -100000;
+	}
 	if (rightSnake.status === 'dead') {
 		possibleMoves.right = -99999999999999;
+	}
+	else if (rightSnake.status === 'danger') {
+		possibleMoves.right = -100000;
 	}
 	if (upSnake.status === 'dead') {
 		possibleMoves.up = -99999999999999;
 	}
+	else if (upSnake.status === 'danger') {
+		possibleMoves.up = -100000;
+	}
 	if (downSnake.status === 'dead') {
 		possibleMoves.down = -99999999999999;
+	}
+	else if (downSnake.status === 'danger') {
+		possibleMoves.down = -100000;
 	}
 
 	// Find food
@@ -91,14 +101,23 @@ export function move(gameState: GameState): MoveResponse {
 	});
 	// food is either right or left, if it is same x value we don't want to prioritize these values
 	if (xDistance > 0) {
-		possibleMoves.right += Math.abs(boardWidth - Math.abs(xDistance));
+		// if food is 1 away but we are in danger, go other way
+		if (!(xDistance === 1 && yDistance === 0 && rightSnake.status === 'danger')) {
+			possibleMoves.right += Math.abs(boardWidth - Math.abs(xDistance));
+		}
 	} else if (xDistance < 0) {
-		possibleMoves.left += Math.abs(boardWidth - Math.abs(xDistance));
+		if (!(xDistance === -1 && yDistance === 0 && leftSnake.status === 'danger')) {
+			possibleMoves.left += Math.abs(boardWidth - Math.abs(xDistance));
+		}
 	}
 	if (yDistance > 0) {
-		possibleMoves.up += Math.abs(boardHeight - Math.abs(yDistance));
+		if (!(yDistance === 1 && xDistance === 0 && upSnake.status === 'danger')) {
+			possibleMoves.up += Math.abs(boardHeight - Math.abs(yDistance));
+		}
 	} else if (yDistance < 0) {
-		possibleMoves.down += Math.abs(boardHeight - Math.abs(yDistance));
+		if (!(yDistance === -1 && xDistance === 0 && downSnake.status === 'danger')) {
+			possibleMoves.down += Math.abs(boardHeight - Math.abs(yDistance));
+		}
 	}
 
 	// Choose the move with the highest weight

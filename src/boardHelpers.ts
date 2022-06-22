@@ -4,14 +4,11 @@ const AVOID_LETTERS = ["H", "S", "SH"];
 function populateBoard(gameState: GameState, board: string[][]): string[][] {
 	let boardCopy = board;
 	const myLength = gameState.you.length;
-	// TODO: Create snakes list with snake ids with lengths, avoid squares where another snake is 1 
-	// square away from it with a bigger tail and seek squares when smaller 
-	
 	// Add snakes
 	gameState.board.snakes.forEach(snake => {
 		snake.body.forEach((bodyPiece, i) => {
 			if (i === 0) { // snake head
-				boardCopy[bodyPiece.x][bodyPiece.y] = 'SH'
+				boardCopy[bodyPiece.x][bodyPiece.y] = `SH${snake.length}`
 			} else {
 				boardCopy[bodyPiece.x][bodyPiece.y] = 'S';
 			}
@@ -31,6 +28,9 @@ function populateBoard(gameState: GameState, board: string[][]): string[][] {
 
 	// Add my head
 	boardCopy[gameState.you.head.x][gameState.you.head.y] = 'O';
+	// I am not scared of my tail, I can go here
+	const myTail = gameState.you.body[myLength - 1];
+	boardCopy[myTail.x][myTail.y] = 'T'; 
 	return board;
 }
 
@@ -47,40 +47,64 @@ export function initializeBoard(gameState: GameState): string[][] {
 }
 
 // Checks if the move being made results in death
-export function moveIsDeath(board: string[][], myHead: Coord, ruleset: string, move: number[]): boolean {
-  const boardWidth = board[0].length;
-  const boardHeight = board.length;
-  const headAfterMove = {
-    x: myHead.x + move[0],
-    y: myHead.y + move[1],
-  }
-  const badMove =  AVOID_LETTERS.includes(board?.[headAfterMove.x]?.[headAfterMove.y]);
-  let wrappedBadMove = false;
-  if (ruleset === 'wrapped') {
-    if (move[0] === 1) { // right
-      wrappedBadMove = myHead.x === boardWidth - 1 && AVOID_LETTERS.includes(board?.[0]?.[myHead.y]);
-    }
-    if (move[0] === -1) { // left
-      wrappedBadMove = myHead.x === 0 && AVOID_LETTERS.includes(board?.[boardWidth - 1]?.[myHead.y]);
-    }
-    if (move[1] === 1) { // up
-      wrappedBadMove = myHead.y === boardHeight - 1
-      && AVOID_LETTERS.includes(board?.[myHead.x]?.[0]);
-    }
-    if (move[1] === -1) { // down
-      wrappedBadMove = myHead.y === 0
-      && AVOID_LETTERS.includes(board?.[myHead.x]?.[boardHeight - 1]);
-    }
-  }
-  const movedIntoWall = ruleset !== 'wrapped' &&
-    (headAfterMove.x < 0 
-  || headAfterMove.y < 0 
-  || headAfterMove.x >= boardWidth 
-  || headAfterMove.y >= boardHeight);
+export function statusAfterMove(gameState: GameState, move: number[]): string {
+	let status = "alive";
+	const board: string[][] = initializeBoard(gameState);
+	const myHead = gameState.you.head;
+	const ruleset = gameState.game.ruleset.name;
+	const boardWidth = board[0].length;
+	const boardHeight = board.length;
+	const headAfterMove = {
+		x: myHead.x + move[0],
+		y: myHead.y + move[1],
+	}
+	const aroundNewHead = [
+		board?.[headAfterMove.x]?.[headAfterMove.y + 1],
+		board?.[headAfterMove.x]?.[headAfterMove.y - 1],
+		board?.[headAfterMove.x + 1]?.[headAfterMove.y],
+		board?.[headAfterMove.x - 1]?.[headAfterMove.y],
+	];
+	let biggerSnakeIsClose = false;
+	aroundNewHead.forEach(square => {
+		if (!square) return;
+		if (square.includes('SH') && Number(square.split("SH")[1]) >= gameState.you.length) {
+			biggerSnakeIsClose = true;
+		}
+	})
 
-  return badMove || wrappedBadMove || movedIntoWall;
+	const badMove = AVOID_LETTERS.includes(board?.[headAfterMove.x]?.[headAfterMove.y]);
+	let wrappedBadMove = false;
+	if (ruleset === 'wrapped') {
+		if (move[0] === 1) { // right
+			wrappedBadMove = myHead.x === boardWidth - 1 && AVOID_LETTERS.includes(board?.[0]?.[myHead.y]);
+		}
+		if (move[0] === -1) { // left
+			wrappedBadMove = myHead.x === 0 && AVOID_LETTERS.includes(board?.[boardWidth - 1]?.[myHead.y]);
+		}
+		if (move[1] === 1) { // up
+			wrappedBadMove = myHead.y === boardHeight - 1
+				&& AVOID_LETTERS.includes(board?.[myHead.x]?.[0]);
+		}
+		if (move[1] === -1) { // down
+			wrappedBadMove = myHead.y === 0
+				&& AVOID_LETTERS.includes(board?.[myHead.x]?.[boardHeight - 1]);
+		}
+	}
+	const movedIntoWall = ruleset !== 'wrapped' &&
+		(headAfterMove.x < 0
+			|| headAfterMove.y < 0
+			|| headAfterMove.x >= boardWidth
+			|| headAfterMove.y >= boardHeight);
+
+	if (movedIntoWall || wrappedBadMove || badMove) {
+		status = "dead";
+	}
+	if (biggerSnakeIsClose) {
+		status = "danger";
+	}
+	return status;
 }
 
 export function getClosestFood() {
-  // TODO
+	// TODO
 }
