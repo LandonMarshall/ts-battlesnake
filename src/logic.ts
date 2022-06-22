@@ -1,11 +1,13 @@
 import { InfoResponse, GameState, MoveResponse } from "./types"
 import { BoardTree } from "./BoardTree";
 
-const DEBUG=false;
+const DEBUG = false;
 
 
 export function info(): InfoResponse {
-	console.log("INFO")
+	if (DEBUG) {
+		console.log("INFO")
+	}
 	const response: InfoResponse = {
 		apiversion: "1",
 		author: "",
@@ -17,20 +19,23 @@ export function info(): InfoResponse {
 }
 
 export function start(gameState: GameState): void {
-	console.log(`${gameState.game.id} START`)
+	if (DEBUG) {
+		console.log(`${gameState.game.id} START`)
+	}
 }
 
 export function end(gameState: GameState): void {
-	console.log(`${gameState.game.id} END\n`)
+	if (DEBUG) {
+		console.log(`${gameState.game.id} END\n`)
+	}
 }
 
 
 
 // ---------------------------------- Start of move ----------------------------------
-
-// TODO: Sweep search for closest food? This works okay though
-// TODO: Flood fill for avoiding dead ends
-// TODO: Check if another snake head is in a square adjacent to the one I want to go to, if so eat/avoid it based on it's length
+// TODO: Tweak flood fill to take food into account
+// TODO: Add DEBUG to env var and set on heroku
+// TODO: Look into tree searching?
 
 export function move(gameState: GameState): MoveResponse {
 	if (DEBUG) {
@@ -42,25 +47,28 @@ export function move(gameState: GameState): MoveResponse {
 
 
 	const rootBoard = new BoardTree(gameState, undefined, undefined, 0);
-	// rootBoard.printBoard();
-	// rootBoard.printTree();
-	// rootBoard.floodFill();
+	rootBoard.floodFill();
 	let leftSnake = rootBoard.addChild(rootBoard.gameState, "left", undefined, 1);
 	let rightSnake = rootBoard.addChild(rootBoard.gameState, "right", undefined, 1);
 	let upSnake = rootBoard.addChild(rootBoard.gameState, "up", undefined, 1);
 	let downSnake = rootBoard.addChild(rootBoard.gameState, "down", undefined, 1);
-	// leftSnake.checkDescendants();
-	// console.log("left: ", leftSnake.status);
-	// console.log("right: ", rightSnake.status);
-	// console.log("up: ", upSnake.status);
-	// console.log("down: ", downSnake.status);
-
+	if (DEBUG) {
+		rootBoard.printBoard();
+		console.log("left: ", leftSnake.status);
+		console.log("right: ", rightSnake.status);
+		console.log("up: ", upSnake.status);
+		console.log("down: ", downSnake.status);
+		console.log("left: ", leftSnake.openArea);
+		console.log("right: ", rightSnake.openArea);
+		console.log("up: ", upSnake.openArea);
+		console.log("down: ", downSnake.openArea);
+	}
 
 	let possibleMoves: { [key: string]: number } = {
-		up: 0,
-		down: 0,
-		left: 0,
-		right: 0
+		up: upSnake.openArea,
+		down: downSnake.openArea,
+		left: leftSnake.openArea,
+		right: rightSnake.openArea
 	}
 
 	// Avoid collisions
@@ -129,7 +137,8 @@ export function move(gameState: GameState): MoveResponse {
 	const response: MoveResponse = {
 		move: bestMove,
 	}
-
-	console.log(`${gameState.game.id} MOVE ${gameState.turn}: ${response.move}`)
+	if (DEBUG) {
+		console.log(`${gameState.game.id} MOVE ${gameState.turn}: ${response.move}`)
+	}
 	return response
 }
