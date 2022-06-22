@@ -1,7 +1,7 @@
 import { InfoResponse, GameState, MoveResponse } from "./types"
 import { BoardTree } from "./BoardTree";
 
-const DEBUG=true;
+const DEBUG=false;
 
 
 export function info(): InfoResponse {
