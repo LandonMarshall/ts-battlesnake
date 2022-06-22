@@ -1,6 +1,8 @@
 import { InfoResponse, GameState, MoveResponse } from "./types"
 import { BoardTree } from "./BoardTree";
 
+const DEBUG=true;
+
 
 export function info(): InfoResponse {
 	console.log("INFO")
@@ -31,7 +33,9 @@ export function end(gameState: GameState): void {
 // TODO: Check if another snake head is in a square adjacent to the one I want to go to, if so eat/avoid it based on it's length
 
 export function move(gameState: GameState): MoveResponse {
-	// console.log('------------------------------------------------------')
+	if (DEBUG) {
+		console.log('------------------------------------------------------')
+	}
 	const boardWidth = gameState.board.width;
 	const boardHeight = gameState.board.height;
 	const myHead = gameState.you.head;

@@ -28,9 +28,12 @@ function populateBoard(gameState: GameState, board: string[][]): string[][] {
 
 	// Add my head
 	boardCopy[gameState.you.head.x][gameState.you.head.y] = 'O';
-	// I am not scared of my tail, I can go here
-	const myTail = gameState.you.body[myLength - 1];
-	boardCopy[myTail.x][myTail.y] = 'T'; 
+
+  // If I just ate food, my tail is not going to move so I should be scared of it
+	if (!justAteFood(gameState.you.body)) {
+		const myTail = gameState.you.body[myLength - 1];
+		boardCopy[myTail.x][myTail.y] = 'T';
+	}
 	return board;
 }
 
@@ -44,6 +47,17 @@ export function initializeBoard(gameState: GameState): string[][] {
 	}
 	let filledBoard = populateBoard(gameState, board);
 	return filledBoard;
+}
+// If there is a duplicate in body, it means we just ate food on the last turn.
+// this is important because our tail won't move if we just ate
+export function justAteFood(body: Coord[]): boolean {
+	const removedDuplicates = [...body.reduce((map, { x, y }) => {
+		return (map.set(`${x}-${y}`, { x, y }));
+	}, new Map()).values()];
+	if (removedDuplicates.length !== body.length) {
+		return true;
+	}
+	return false;
 }
 
 // Checks if the move being made results in death
