@@ -110,6 +110,38 @@ export function justAteFood(body: Coord[]): boolean {
 	return false;
 }
 
+// export function moveSnakeInGameState(gameState: GameState, move: string, me: boolean = false): GameState {
+// 	const modifiedGameState = JSON.parse(JSON.stringify(gameState));
+// 	if (me) {
+// 		modifiedGameState.you.head = {
+// 			"x": modifiedGameState.you.head.x + move[0],
+// 			"y": modifiedGameState.you.head.y + move[1],
+// 		}
+// 		modifiedGameState.you.body.unshift(modifiedGameState.you.head);
+// 		if (!justAteFood(modifiedGameState.you.body)) {
+// 			modifiedGameState.you.body.pop();
+// 		} // tail stays when you just ate food
+// 		modifiedGameState.myHead = modifiedGameState.you.head;
+// 	} else {
+// 	newGameState.you.body.unshift(newGameState.you.head);
+// 	newGameState.you.body.pop();
+// 	newGameState.you.head = { x: newGameState.you.head.x + move[0], y: newGameState.you.head.y + move[1] };
+// 	return modifiedGameState;
+// }
+
+export function moveMySnake(gameState: GameState, move: string): GameState {
+	const modifiedGameState = JSON.parse(JSON.stringify(gameState));
+	modifiedGameState.you.head = {
+		"x": modifiedGameState.you.head.x + move[0],
+		"y": modifiedGameState.you.head.y + move[1],
+	}
+	modifiedGameState.you.body.unshift(modifiedGameState.you.head);
+	if (!justAteFood(modifiedGameState.you.body)) {
+		modifiedGameState.you.body.pop();
+	} // tail stays when you just ate food
+	return modifiedGameState;
+}
+
 /**
  * Checks if the move being made results in death
  * @param gameState Game state to check if death occurs
